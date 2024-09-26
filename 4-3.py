@@ -1,39 +1,25 @@
-# 4-3-pwm.py
-
 import RPi.GPIO as GPIO
-import time
-
-# Настройка выбранного GPIO-пина для ШИМ
-pwm_pin = 18  # Замените на используемый пин для ШИМ
-
-# Настраиваем режим обращения к GPIO
 GPIO.setmode(GPIO.BCM)
+GPIO.setup(24, GPIO.OUT)
+GPIO.setup(9,GPIO.OUT)
 
-# Настраиваем GPIO-пин как выход
-GPIO.setup(pwm_pin, GPIO.OUT)
-
-# Создаем объект управления ШИМ на выбранном GPIO-пине
-pwm = GPIO.PWM(pwm_pin, 1000)  # Частота 1 кГц
-pwm.start(0)  # Запускаем ШИМ с коэффициентом заполнения 0
+d = GPIO.PWM(24, 100)
+p = GPIO.PWM(9, 100)
+p.start(0)
+d.start(0)
+ 
+print("Введите заполнение ШИМ (%):")
 
 try:
+    
     while True:
-        # Запрашиваем у пользователя коэффициент заполнения
-        duty_cycle = float(input("Введите коэффициент заполнения (0-100): "))
-        
-        # Проверка корректности ввода
-        if duty_cycle < 0 or duty_cycle > 100:
-            print("Ошибка: введите значение от 0 до 100.")
-            continue
-        
-        # Задаем введенный коэффициент объекту управления ШИМ
-        pwm.ChangeDutyCycle(duty_cycle)
-        
-        # Расчет и вывод предполагаемого значения напряжения на выходе RC-цепи
-        voltage = (duty_cycle / 100) * 3.3  # Предполагаем, что опорное напряжение 3.3В
-        print(f"Предполагаемое значение напряжения на выходе RC-цепи: {voltage:.2f} В")
+
+        a=int(input())
+        n = int(a)
+        p.ChangeDutyCycle(n)
+        d.ChangeDutyCycle(n)
 
 finally:
-    # Останавливаем ШИМ и очищаем настройки GPIO
-    pwm.stop()
+
+    p.stop()
     GPIO.cleanup()
