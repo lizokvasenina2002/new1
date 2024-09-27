@@ -1,0 +1,108 @@
+% Задаем координаты точек (товаров)
+tovar = [0.15, 0.15; 0.45, 0.55; 0.45, 0.35]; % Пример координат
+
+% Начальная позиция (текущий товар)
+robot = [0.95, 0.95]; % Замените на ваши координаты
+
+punktnaznachenia = [0.95, 0.05];
+
+current_position = robot;%текущая позиция
+
+% Инициализация переменных
+num = size(tovar, 1);
+visited = false(num, 1); % Для отслеживания посещенных товаров
+
+sum_distance = 0;
+
+route = current_position;
+
+while sum(visited) < num
+    % Инициализация массивов для расстояний и индексов
+    %distances = zeros(num, 1);
+    distances = Inf(num, 1);
+
+    % Цикл по всем товарам
+    for i = 1:num
+        if ~visited(i) % Игнорируем уже посещенные товары
+            % Вычисляем расстояние от текущей позиции до товара
+            distances(i) = abs(current_position(1) - tovar(i, 1)) + abs(current_position(2) - tovar(i, 2));
+        end
+    end
+    
+    % Находим индекс ближайшего товара
+    [min_distance, closest_index] = min(distances);
+    
+    % Обновляем текущую позицию
+    current_position = tovar(closest_index, :);
+    visited(closest_index) = true; % Отмечаем товар как посещенный
+
+    sum_distance = sum_distance + min_distance;%сумма расстояний
+
+    route = [route; current_position];
+    
+     % Выводим порядок индексов и расстояний
+    [sorted_distances, index_order] = sort(distances);
+    disp('Порядок индексов товара по удаленности и расстояния:');
+    for j = 1:num
+        if sorted_distances(j) < inf
+            fprintf('Индекс: %d, Расстояние: %.2f\n', index_order(j), sorted_distances(j));
+        end
+    end
+
+    % Выводим информацию о ближайшем товаре
+    fprintf('Ближайший товар: индекс = %d, расстояние = %.2f\n', closest_index, min_distance);
+    disp('Индекс товара:');
+    disp(closest_index);
+    disp('Расстояние до товара:');
+    disp(min_distance);
+end
+
+fprintf('Сумма расстояний до всех товаров: %.2f\n', sum_distance);
+disp('Все товары были посещены.');
+
+distances = abs(current_position(1) - punktnaznachenia(1)) + abs(current_position(2) - punktnaznachenia(2));
+disp('Расстояние от последнего товара до пункта назначения:');
+disp(distances*100);
+sum_distance = sum_distance + distances;
+disp('Расстояние от робота до пункта назначения:');
+disp(sum_distance*100);%масштабирование
+
+% Построение графика
+figure;
+hold on; 
+
+plot(x_kvadrat, y_kvadrat, 'b', 'LineWidth', 2); 
+plot(x_priamougolnik, y_priamougolnik, 'b', 'LineWidth', 2); 
+% Заштриховка области внутри прямоугольника
+fill(x_priamougolnik, y_priamougolnik, 'b', 'FaceAlpha', 0.5); % Заштриховать прямоугольник
+plot(punktnaznachenia(1), punktnaznachenia(2), 'bo', 'MarkerSize', 10, 'MarkerFaceColor', 'b'); % Начальная точка
+plot(robot(1), robot(2), 'rx', 'MarkerSize', 10); % Позиция робота
+plot(tovar(:, 1), tovar(:, 2), 'r^', 'MarkerSize', 10); % Товары
+plot(route(:, 1), route(:, 2), 'b--','LineWidth', 2); % Товары
+
+%эта часть нужно записать циклом
+%его вписать в другой цикл, где идёт обновление текущей позиции
+plot([tovar(2, 1), tovar(2, 1)], [tovar(2, 2), robot(1)], 'k--'); % Вертикальная линия
+plot([tovar(2, 1), robot(2)], [robot(2), robot(2)], 'k--'); % Горизонтальная линия
+
+plot([tovar(3, 1), tovar(3, 1)], [tovar(3, 2), tovar(2, 2)], 'k--'); % Вертикальная линия
+plot([tovar(2, 1), tovar(3, 1)], [tovar(2, 2), tovar(2, 2)], 'k--'); % Горизонтальная линия
+
+plot([tovar(1, 1), tovar(1, 1)], [tovar(1, 2), tovar(3, 2)], 'k--'); % Вертикальная линия
+plot([tovar(3, 1), tovar(1, 1)], [tovar(3, 2), tovar(3, 2)], 'k--'); % Горизонтальная линия
+
+plot([punktnaznachenia(1), punktnaznachenia(1)], [tovar(1, 2), punktnaznachenia(2)], 'k--'); % Вертикальная линия
+plot([tovar(1, 1), punktnaznachenia(1)], [tovar(1, 2), tovar(1, 2)], 'k--'); % Горизонтальная линия
+%эта часть нужно записать циклом
+
+% Включение сетки
+grid on; % Включить сетку
+set(gca, 'GridLineStyle', '-'); % Установить стиль линий сетки
+set(gca, 'GridColor', 'k'); % Установить цвет линий сетки
+set(gca, 'GridAlpha', 1); % Установить прозрачность линий сетки
+title('Квадратное поле');
+xlabel('X');
+ylabel('Y');
+axis equal; % Установить равные масштабы для осей
+
+
