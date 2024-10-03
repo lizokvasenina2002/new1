@@ -58,3 +58,9 @@ try:
         time.sleep(1)  # Задержка для предотвращения слишком частых обновлений
 except KeyboardInterrupt:
     print("Остановка программы.")
+
+
+def update_leds(voltage):
+    num_leds_on = int((voltage / 3.3) * 8)  # Преобразование напряжения в количество светодиодов
+    for i in range(8):
+        leds[i].value = i < num_leds_on
