@@ -1,0 +1,442 @@
+clc;
+clear;
+close all;
+
+robot =  [2, 3];
+punktnaznachenia = [5, 10];
+
+rows = 10;
+cols = 10;
+field = ones(cols, rows);
+field(robot(1), robot(2)) = 15;
+field(3, 4) = Inf;
+field(4, 4) = Inf;
+field(5, 4) = Inf;
+field(5, 3) = Inf;
+field(8, 5) = Inf;
+field(9, 5) = Inf;
+field(10, 5) = Inf;
+field(10, 6) = Inf;
+field(4, 8) = Inf;
+field(5, 8) = Inf;
+field(3, 8) = Inf;
+field(3, 3) = Inf;
+
+field(5, 10) = 100;% чтобы было видно конечную точку (потом убрать)
+[cols, rows] = size(field);
+%disp(field);
+
+
+current_row = robot(2);%текущая позиция
+current_col = robot(1);%текущая позиция
+current_position = [current_col, current_row];%текущая позиция
+current_position1 = [current_col, current_row];%текущая позиция
+current_position2 = [current_col, current_row];%текущая позиция
+current_position3 = [current_col, current_row];%текущая позиция
+current_position4 = [current_col, current_row];%текущая позиция
+
+route = current_position;%массив для хранения маршрута
+
+figure;
+hold on; 
+
+for c = 1:cols
+    for r = 1:rows
+        if field(c, r) == Inf
+            fill([c-1 c c c-1], [r-1 r-1 r r], 'k')
+        else
+            fill([c-1 c c c-1], [r-1 r-1 r r], 'w')
+        end
+    end
+end
+
+fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+    [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r');
+fill([punktnaznachenia(1)-1 punktnaznachenia(1) punktnaznachenia(1) punktnaznachenia(1)-1], ...
+    [punktnaznachenia(2)-1 punktnaznachenia(2)-1 punktnaznachenia(2) punktnaznachenia(2)], 'b');
+axis equal; % Установить равные масштабы для осей
+xlim([0 cols])
+ylim([0 rows])
+% Включение сетки
+grid on
+set(gca, 'Color', 'w'); 
+title('Квадратное поле');
+xlabel('X');
+ylabel('Y');
+
+
+%время преодоления каждой клетки
+time = field;
+disp(time);
+
+Grid = cell(cols, rows);
+
+
+%цикл + обновление времени и обнуление времни в уже прошедших клетках!!!!!!
+
+
+%while current_row < punktnaznachenia(1) && current_col < punktnaznachenia(2)
+
+
+
+%ВЛЕВО
+        if current_col > 1 && time(current_col-1, current_row) ~= Inf
+            
+            time(current_col - 1, current_row) = time(current_col, current_row) + time(current_col - 1, current_row);%время текущей позиции = текущая + предыдущая
+            disp(time);
+            new_current_col = current_col - 1;
+            new_current_row = current_row;
+            current_position1 = [new_current_col, new_current_row];%текущая позиция
+            disp(current_position1); 
+            past_place = [current_col, current_row];%записать откуда робот пришёл в эту клетку
+            disp(past_place);     
+            Grid{new_current_col, new_current_row} = {[current_col, current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+            
+            
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", current_col-1, current_row)
+        end
+        if cols > current_col && time(current_col+1, current_row) ~= Inf
+            
+            new_current_col = current_col + 1;
+            new_current_row = current_row;
+            current_position2 = [new_current_col, new_current_row];%текущая позиция
+            time(current_col + 1, current_row) = time(current_col, current_row) + time(current_col + 1, current_row);
+            disp(time);
+            
+            disp(current_position2);
+            past_place = [current_col, current_row];
+            disp(past_place);
+
+            Grid{new_current_col, new_current_row} = {[current_col, current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", current_col+1, current_row)
+        end
+
+
+%ВНИЗ
+        if current_row > 1 && time(current_col, current_row - 1) ~= Inf
+            new_current_col = current_col;
+            new_current_row = current_row - 1;
+            current_position3 = [new_current_col, new_current_row];%текущая позиция
+            time(current_col, current_row - 1) = time(current_col, current_row) + time(current_col, current_row - 1);
+            disp(time);
+           
+            disp(current_position3);
+            past_place = [current_col, current_row];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[current_col, current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+           
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", current_col, current_row-1)
+        end
+
+%ВВЕРХ
+        if rows > current_row && time(current_col, current_row+1) ~= Inf
+            new_current_col = current_col;
+            new_current_row = current_row + 1;
+            current_position4 = [new_current_col, new_current_row];%текущая позиция
+            time(current_col, current_row + 1) = time(current_col, current_row) + time(current_col, current_row + 1);
+            disp(time);
+           
+            disp(current_position4);
+            past_place = [current_col, current_row];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[current_col, current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", current_col, current_row+1)
+        end
+
+        time(current_col, current_row) = 0;%занулить время
+        disp(time);
+
+
+%из первой клетки движение завершено
+% далее из тех клеток, в которые мы пришли, нужно двигаться во все
+% возможные клетки
+
+
+        if new_current_col > 1 && time(new_current_col-1, new_current_row) ~= Inf && time(new_current_col-1, new_current_row) ~= 0
+            
+            time(new_current_col - 1, new_current_row) = time(new_current_col, new_current_row) + time(new_current_col - 1, new_current_row);%время текущей позиции = текущая + предыдущая
+            disp(time);
+            new_current_col = new_current_col - 1;
+            %new_current_row = new_current_row;
+            current_position1 = [new_current_col, new_current_row];%текущая позиция
+            disp(current_position1); 
+            past_place = [new_current_col+1, new_current_row];%записать откуда робот пришёл в эту клетку
+            disp(past_place);     
+            Grid{new_current_col, new_current_row} = {[new_current_col+1, new_current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col-1, new_current_row)
+        end
+
+
+
+        if cols > new_current_col && time(new_current_col+1, new_current_row) ~= Inf && time(new_current_col+1, new_current_row) ~= 0
+            
+            new_current_col = new_current_col + 1;
+            %new_current_row = new_current_row;
+            current_position2 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col + 1, new_current_row) = time(new_current_col, new_current_row) + time(new_current_col + 1, new_current_row);
+            disp(time);
+            
+            disp(current_position2);
+            past_place = [new_current_col, current_row];
+            disp(past_place);
+
+            Grid{new_current_col, new_current_row} = {[new_current_col-1, new_current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col+1, new_current_row)
+        end
+
+%ВНИЗ (нужно поставитьограничение что если эта клетк 0 то туда уже не возвращаться)
+        if new_current_row > 1 && time(new_current_col, new_current_row - 1) ~= Inf && time(new_current_col, new_current_row - 1) ~= 0
+            %new_current_col = new_current_col;
+            new_current_row = new_current_row - 1;
+            current_position3 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col, new_current_row) = time(new_current_col, new_current_row - 1) + time(new_current_col, new_current_row );
+            disp(time);
+           
+            disp(current_position3);
+            past_place = [new_current_col, new_current_row + 1];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[new_current_col, new_current_row + 1], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col, new_current_row-1)
+        end
+
+        %ВВЕРХ
+        if rows > new_current_row && time(new_current_col, new_current_row+1) ~= Inf && time(new_current_col, new_current_row+1) ~= 0
+            %new_current_col = new_current_col;
+            new_current_row = new_current_row + 1;
+            current_position4 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col, new_current_row) = time(new_current_col, new_current_row - 1) + time(new_current_col, new_current_row);
+            disp(time);
+           
+            disp(current_position4);
+            past_place = [new_current_col, new_current_row - 1];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[new_current_col, new_current_row - 1], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+          
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col, new_current_row+1)
+        end
+        
+
+        if new_current_col > 1 && time(new_current_col-1, new_current_row) ~= Inf && time(new_current_col-1, new_current_row) ~= 0
+            
+            time(new_current_col - 1, new_current_row) = time(new_current_col, new_current_row) + time(new_current_col - 1, new_current_row);%время текущей позиции = текущая + предыдущая
+            disp(time);
+            new_current_col = new_current_col - 1;
+            %new_current_row = new_current_row;
+            current_position1 = [new_current_col, new_current_row];%текущая позиция
+            disp(current_position1); 
+            past_place = [new_current_col+1, new_current_row];%записать откуда робот пришёл в эту клетку
+            disp(past_place);     
+            Grid{new_current_col, new_current_row} = {[new_current_col+1, new_current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col-1, new_current_row)
+        end
+
+
+
+        if cols > new_current_col && time(new_current_col+1, new_current_row) ~= Inf && time(new_current_col+1, new_current_row) ~= 0
+            
+            new_current_col = new_current_col + 1;
+            %new_current_row = new_current_row;
+            current_position2 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col + 1, new_current_row) = time(new_current_col, new_current_row) + time(new_current_col + 1, new_current_row);
+            disp(time);
+            
+            disp(current_position2);
+            past_place = [new_current_col, current_row];
+            disp(past_place);
+
+            Grid{new_current_col, new_current_row} = {[new_current_col-1, new_current_row], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col+1, new_current_row)
+        end
+
+%ВНИЗ (нужно поставитьограничение что если эта клетк 0 то туда уже не возвращаться)
+        if new_current_row > 1 && time(new_current_col, new_current_row - 1) ~= Inf && time(new_current_col, new_current_row - 1) ~= 0
+            %new_current_col = new_current_col;
+            new_current_row = new_current_row - 1;
+            current_position3 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col, new_current_row) = time(new_current_col, new_current_row - 1) + time(new_current_col, new_current_row );
+            disp(time);
+           
+            disp(current_position3);
+            past_place = [new_current_col, new_current_row + 1];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[new_current_col, new_current_row + 1], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col, new_current_row-1)
+        end
+
+        %ВВЕРХ
+        if rows > new_current_row && time(new_current_col, new_current_row+1) ~= Inf && time(new_current_col, new_current_row+1) ~= 0
+            %new_current_col = new_current_col;
+            new_current_row = new_current_row + 1;
+            current_position4 = [new_current_col, new_current_row];%текущая позиция
+            time(new_current_col, new_current_row) = time(new_current_col, new_current_row - 1) + time(new_current_col, new_current_row);
+            disp(time);
+           
+            disp(current_position4);
+            past_place = [new_current_col, new_current_row - 1];
+            disp(past_place);           
+            Grid{new_current_col, new_current_row} = {[new_current_col, new_current_row - 1], [new_current_col, new_current_row]};
+            disp("Сетка");
+            disp (Grid);
+            disp("СЕТКА");
+            disp(Grid{new_current_col, new_current_row});
+          
+        else
+            fprintf("Клетка (%d, %d) является препятствием.\n", new_current_col, new_current_row+1)
+        end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%{
+if field(current_position) ~= Inf
+    if current_col > 1 && field(current_col-1, current_row) ~= Inf
+        fprintf("Из клетки (%d, %d) можно перейти в левую клетку (%d, %d).\n", current_col, current_row, current_col-1, current_row);
+        %
+        new_position1 = [current_col - 1, current_row];
+        disp(new_position1);
+        %%%
+        time(current_col - 1, current_row) = time(current_col, current_row) + time(current_col - 1, current_row);
+        disp(time);  
+        
+        current_position = new_position1;
+        disp(current_position);
+        route = [route; current_position];%добавление текущей позиции в маршрут
+        %disp(route);
+
+    else
+        fprintf("Клетка (%d, %d) является препятствием.\n", current_col-1, current_row)
+    end
+    if cols > current_col && field(current_col+1, current_row) ~= Inf
+        fprintf("Из клетки (%d, %d) можно перейти в правую клетку (%d, %d).\n", current_col, current_row, current_col+1, current_row);
+        %
+        new_position2 = [current_col + 1, current_row];
+        disp(new_position2);
+        %%%
+        time(current_col + 1, current_row) = time(current_col, current_row) + time(current_col + 1, current_row);
+        disp(time);
+
+        current_position = new_position2;
+        disp(current_position);
+
+        
+    else
+        fprintf("Клетка (%d, %d) является препятствием.\n", current_col+1, current_row)
+    end
+    if current_row > 1 && field(current_col, current_row-1) ~= Inf
+        fprintf("Из клетки (%d, %d) можно перейти в нижнюю клетку (%d, %d).\n", current_col, current_row, current_col, current_row-1);
+        %
+        new_position3 = [current_col, current_row - 1];
+        disp(new_position3);
+        %%%
+        time(current_col, current_row - 1) = time(current_col, current_row) + time(current_col, current_row - 1);
+        disp(time);
+        current_position = new_position3;
+        disp(current_position);
+       
+    else
+        fprintf("Клетка (%d, %d) является препятствием.\n", current_col, current_row-1)
+    end
+    if rows > current_row && field(current_col, current_row+1) ~= Inf
+        fprintf("Из клетки (%d, %d) можно перейти в верхнюю клетку (%d, %d).\n", current_col, current_row, current_col, current_row+1);
+        %
+        new_position4 = [current_col, current_row + 1];
+        disp(new_position4);
+        %%%
+        time(current_col, current_row + 1) = time(current_col, current_row) + time(current_col, current_row + 1);
+        disp(time);
+        current_position = new_position4;
+        disp(current_position);
+       
+      
+    else
+        fprintf("Клетка (%d, %d) является препятствием.\n", current_col, current_row+1)
+    end
+    current_position = new_position4;
+    disp(current_position);
+end
+time(current_col, current_row) = 0;%не занулять время
+disp(time);
+
+%}
+
+
+
+
+
+
