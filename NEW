@@ -1,0 +1,163 @@
+clc;
+clear;
+close all;
+
+function oneRobot(field, robot, punktnaznachenia)
+    [cols, rows] = size(field); % размер поля
+
+    current_position = robot; % начальная позиция
+
+    directions = [-1 0; 0 1; 1 0; 0 -1]; % направление  влево вверх вправо вниз 
+    %directions = [0 -1; -1 0; 0 1; 1 0];
+    visited = ones(cols, rows);
+    visited(robot(1), robot(2)) = 0;
+    visited(3, 4) = Inf;
+    visited(4, 4) = Inf;
+    visited(5, 4) = Inf;
+    visited(5, 3) = Inf;
+    visited(8, 5) = Inf;
+    visited(9, 5) = Inf;
+    visited(10, 5) = Inf;
+    visited(10, 6) = Inf;
+    visited(4, 8) = Inf;
+    visited(5, 8) = Inf;
+    visited(3, 8) = Inf;
+    visited(3, 3) = Inf;
+
+    figure;
+    hold on;
+
+    for c = 1:cols
+        for r = 1:rows
+            if field(c, r) == Inf
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'k')
+            else
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'w')
+            end
+        end
+    end
+
+    fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+        [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r');
+    fill([punktnaznachenia(1)-1 punktnaznachenia(1) punktnaznachenia(1) punktnaznachenia(1)-1], ...
+        [punktnaznachenia(2)-1 punktnaznachenia(2)-1 punktnaznachenia(2) punktnaznachenia(2)], 'b');
+    axis equal; % Установить равные масштабы для осей
+    xlim([0 cols])
+    ylim([0 rows])
+    % Включение сетки
+    grid on
+    set(gca, 'Color', 'w');
+    title('Квадратное поле');
+    xlabel('X');
+    ylabel('Y');
+
+    Grid = cell(cols, rows); % матрица с координатами текущей позиции и из какой клетки пришёл робот
+
+    %инициализация очереди
+    queue = {current_position};
+    Grid{current_position(1), current_position(2)} = {current_position, current_position};
+
+    
+
+    %пока очередь пуста
+    while ~isempty(queue)
+            current_position = queue{1};%извлечение первого элемента из очереди и присвоение этого элемента пременной current_position
+            queue(1) = [];%удаление элемента из очереди
+        %текущая позиция достигла пункта назначения (определение равенства массивов)
+        if isequal(current_position, punktnaznachenia)
+            break;
+        end
+            % Проверка всех направлений поочередно
+        for direction_idx = 1:size(directions, 1)
+            new_current_position = current_position + directions(direction_idx, :);
+
+            if new_current_position(1) >= 1 && new_current_position(1) <= rows && new_current_position(2) >= 1 && new_current_position(2) <= cols % проверка на границу
+                if field(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) == 1 % проверка на препятствие и посещение
+
+                    visited(new_current_position(1), new_current_position(2)) = 0; % обновление матрицы посещений
+                    disp("Матрица посещений:");
+                    disp(rot90(visited));
+                    
+                    %{
+                    field(new_current_position(1), new_current_position(2)) = field(current_position(1), current_position(2)) + field(new_current_position(1), new_current_position(2)); % обновление времени преодоления клетки
+                    disp("Время преодоления клетки:");
+                    disp(rot90(field));
+                    %}
+                    Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
+                    disp("Откуда и куда пришёл робот:");
+                    disp(Grid{new_current_position(1), new_current_position(2)});
+                    queue{end + 1} = new_current_position;%добавление новой позиции в конец массива
+                end
+            
+            end
+        end
+
+        
+    
+        fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+            [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r'); % отображение текущей позиции
+        pause(0.1);
+        
+    end
+
+    %построение обратного пути
+    path = [];
+    current_position = punktnaznachenia;
+    sum = 0;%суммируем время
+
+    while ~isequal(current_position, robot)
+        path = [current_position; path];%добавление текущей позиции в начало массива path (вертикальное объявление матриц)
+        previous_position = Grid{current_position(1), current_position(2)}{1};%получаем предыдущую позицию робота из матрицы Grid ({1} первый элемент содержит коордиаты предыдущей позиции)
+        sum = sum + field(current_position(1), current_position(2));%обновление общей суммы
+        current_position = previous_position;
+    end
+    path = [robot; path];%додавление в начало массива начальной позиции robot 
+    %disp("Координаты клеток маршрута:")
+    %disp(path);
+
+    %отображаем путь
+    for i = 1 : size(path, 1)%проходим по всем строкам массива path, (size количество строк(т.е. количество позиций в пути))
+        fill([path(i, 1)-1 path(i, 1) path(i, 1) path(i, 1)-1], ...
+            [path(i, 2)-1 path(i, 2)-1 path(i, 2) path(i, 2)], 'g');
+        pause(0.1);
+    end
+
+    fill([punktnaznachenia(1)-1 punktnaznachenia(1) punktnaznachenia(1) punktnaznachenia(1)-1], ...
+        [punktnaznachenia(2)-1 punktnaznachenia(2)-1 punktnaznachenia(2) punktnaznachenia(2)], 'b'); % отображение конечной точки
+    disp("Робот достиг цели!!")
+    disp(['Количество тактов:', num2str(sum)]);
+
+    disp("Координаты клеток маршрута по шагам:")
+    for i = 1 : size(path, 1)%проходим по всем строкам массива path, (size количество строк(т.е. количество позиций в пути))
+        disp(['Шаг', num2str(i), ':(', num2str(path(i, 1)), ',', num2str(path(i, 2)), ')'])
+    end
+end
+
+
+
+
+%robot =  [2, 3];
+%punktnaznachenia = [5, 10];
+robot =  [10, 1];
+punktnaznachenia = [7, 10];
+
+rows = 10;
+cols = 10;
+field = ones(cols, rows);
+field(robot(1), robot(2)) = 0;
+field(3, 4) = Inf;
+field(4, 4) = Inf;
+field(5, 4) = Inf;
+field(5, 3) = Inf;
+field(8, 5) = Inf;
+field(9, 5) = Inf;
+field(10, 5) = Inf;
+field(10, 6) = Inf;
+field(4, 8) = Inf;
+field(5, 8) = Inf;
+field(3, 8) = Inf;
+field(3, 3) = Inf;
+
+field(5, 10) = 1;
+
+oneRobot(field, robot, punktnaznachenia);
