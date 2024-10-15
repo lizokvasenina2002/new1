@@ -1,0 +1,101 @@
+clc;
+clear;
+close all;
+
+function oneRobot(field, robot, punktnaznachenia)
+    [cols, rows] = size(field); % размер поля
+
+    current_position = robot; % начальная позиция
+
+    directions = [-1 0; 0 1; 1 0; 0 -1]; % направление  влево вверх вправо вниз 
+
+    visited = zeros(cols, rows);
+    visited(robot(1), robot(2)) = 1;
+
+    figure;
+    hold on;
+
+    for c = 1:cols
+        for r = 1:rows
+            if field(c, r) == Inf
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'k')
+            else
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'w')
+            end
+        end
+    end
+
+    fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+        [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r');
+    fill([punktnaznachenia(1)-1 punktnaznachenia(1) punktnaznachenia(1) punktnaznachenia(1)-1], ...
+        [punktnaznachenia(2)-1 punktnaznachenia(2)-1 punktnaznachenia(2) punktnaznachenia(2)], 'b');
+    axis equal; % Установить равные масштабы для осей
+    xlim([0 cols])
+    ylim([0 rows])
+    % Включение сетки
+    grid on
+    set(gca, 'Color', 'w');
+    title('Квадратное поле');
+    xlabel('X');
+    ylabel('Y');
+
+    Grid = cell(cols, rows); % матрица с координатами текущей позиции и из какой клетки пришёл робот
+
+    %current_direction_idx = 1; % Инициализируйте индекс текущего направления
+
+    while ~isequal(current_position, punktnaznachenia)
+        % Проверка всех направлений поочередно
+        for direction_idx = 1:size(directions, 1)
+            new_current_position = current_position + directions(direction_idx, :);
+
+            if new_current_position(1) >= 1 && new_current_position(1) <= rows && new_current_position(2) >= 1 && new_current_position(2) <= cols % проверка на границу
+                if field(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) == 0 % проверка на препятствие и посещение
+                    current_position = new_current_position; % обновление текущей позиции
+                    field(current_position(1), current_position(2)) = field(current_position(1), current_position(2)) + 1; % обновление времени преодоления клетки
+                    visited(new_current_position(1), new_current_position(2)) = 1; % обновление матрицы посещений
+                    disp(rot90(visited));
+
+                    past_place = current_position - directions(direction_idx, :); % записать откуда робот пришёл в эту клетку
+                    Grid{new_current_position(1), new_current_position(2)} = {[past_place(1), past_place(2)], [new_current_position(1), new_current_position(2)]};
+                    disp("СЕТКА");
+                    disp(Grid{new_current_position(1), new_current_position(2)});
+
+                    break; % Выход из цикла, если направление найдено
+                end
+            end
+        end
+
+        fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+            [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r'); % отображение текущей позиции
+        pause(1);
+    end
+
+    fill([punktnaznachenia(1)-1 punktnaznachenia(1) punktnaznachenia(1) punktnaznachenia(1)-1], ...
+        [punktnaznachenia(2)-1 punktnaznachenia(2)-1 punktnaznachenia(2) punktnaznachenia(2)], 'b'); % отображение конечной точки
+
+    disp("Робот достиг цели!!")
+end
+
+robot =  [2, 3];
+punktnaznachenia = [5, 10];
+
+rows = 10;
+cols = 10;
+field = ones(cols, rows);
+field(robot(1), robot(2)) = 15;
+field(3, 4) = Inf;
+field(4, 4) = Inf;
+field(5, 4) = Inf;
+field(5, 3) = Inf;
+field(8, 5) = Inf;
+field(9, 5) = Inf;
+field(10, 5) = Inf;
+field(10, 6) = Inf;
+field(4, 8) = Inf;
+field(5, 8) = Inf;
+field(3, 8) = Inf;
+field(3, 3) = Inf;
+
+field(5, 10) = 100;
+
+oneRobot(field, robot, punktnaznachenia);
