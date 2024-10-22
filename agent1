@@ -1,0 +1,235 @@
+clc;
+clear;
+close all;
+
+
+function oneRobot(field, robot, target_points, disp_flag)
+    [cols, rows] = size(field); % размер поля
+
+    current_position = robot; % начальная позиция
+
+    directions = [-1 0; 0 1; 1 0; 0 -1]; % направление  влево вверх вправо вниз 
+    %directions = [0 -1; -1 0; 0 1; 1 0];
+    visited = ones(cols, rows);
+    visited(robot(1), robot(2)) = 0;
+
+    for r = 1:rows
+        for c = 1:cols
+            if field(c, r) == Inf
+                visited(c, r) = Inf;
+            end
+        end
+    end
+
+    figure;
+    hold on;
+    
+    for r = 1:rows
+        for c = 1:cols
+            if field(c, r) == Inf
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'k')
+            else
+                fill([c-1 c c c-1], [r-1 r-1 r r], 'w')
+            end
+        end
+    end
+    
+    fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+            [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r');
+    
+    for i = 1 : length(target_points)
+        fill([target_points(i, 1)-1 target_points(i, 1) target_points(i, 1) target_points(i, 1)-1], ...
+                [target_points(i, 2)-1 target_points(i, 2)-1 target_points(i, 2) target_points(i, 2)], 'b');
+        if isequal(target_points (i, :),robot)
+            fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+                [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r');
+        end
+    end
+    
+    axis equal; % Установить равные масштабы для осей
+    xlim([0 cols])
+    ylim([0 rows])
+    % Включение сетки
+    grid on
+    set(gca, 'Color', 'w');
+    title('Квадратное поле');
+    xlabel('X');
+    ylabel('Y');
+
+    Grid = cell(cols, rows); % матрица с координатами текущей позиции и из какой клетки пришёл робот
+
+    %инициализация очереди
+    queue = {current_position};
+    Grid{current_position(1), current_position(2)} = {current_position, current_position};
+
+%пока все целеве точки не посещены, цикл продолжается
+    while ~isempty(target_points)
+        random_index = randi(length(target_points));%рандомно выбираем целевые точки для посещения
+        target_position = target_points(random_index, :);
+        
+        %пока очередь не станет пустой
+        while ~isempty(queue)
+                current_position = queue{1};%извлечение первого элемента из очереди и присвоение этого элемента пременной current_position
+                queue(1) = [];%удаление элемента из очереди
+            %текущая позиция достигла пункта назначения (определение равенства массивов)
+            if isequal(current_position, target_position)% пока робот не достигнет нужного пункта назначения
+                target_points(random_index, :) = target_points(end, :);
+                target_points(end, :) = [];
+                break;
+            end
+            %can_move = false;
+            %~can_move
+            % Проверка всех направлений поочередно
+            for direction_idx = 1:size(directions, 1)
+                new_current_position = current_position + directions(direction_idx, :);
+                if new_current_position(1) >= 1 && new_current_position(1) <= cols && new_current_position(2) >= 1 && new_current_position(2) <= rows % проверка на границу
+                    if field(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) == 1 % проверка на препятствие и посещение
+                        %добавить условие на обход препятствия по часовой
+                        %стрелки 
+                        %if 
+                            visited(new_current_position(1), new_current_position(2)) = 0; % обновление матрицы посещений
+                            Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
+                            queue{end + 1} = new_current_position;%добавление новой позиции в конец массива
+                            %can_move = true;
+                            
+                        if disp_flag
+                            disp("Матрица посещений:");
+                            disp(rot90(visited));
+                            disp("Откуда и куда пришёл робот:");
+                            disp(Grid{new_current_position(1), new_current_position(2)});
+                        end
+                        %end
+                    end
+                    fill([current_position(1)-1 current_position(1) current_position(1) current_position(1)-1], ...
+                        [current_position(2)-1 current_position(2)-1 current_position(2) current_position(2)], 'r'); % отображение текущей позиции
+                    pause(0.01);
+                end
+            end
+            %{
+            if ~can_move
+                if isempty(queue)
+                    disp("Не удалось построить маршрут до пункта назначения!!");
+                    return;
+                else
+                    continue;
+                end
+            end
+            %}
+        end
+
+        %построение обратного пути
+        path = [];
+        current_position = target_position;% НУЖНО ИСПРАВИТЬ !!!! нужный пункт назначения
+        sum = 0;%суммируем время
+    
+        while ~isequal(current_position, robot)
+            path = [current_position; path];%добавление текущей позиции в начало массива path (вертикальное объявление матриц)
+            previous_position = Grid{current_position(1), current_position(2)}{1};%получаем предыдущую позицию робота из матрицы Grid ({1} первый элемент содержит коордиаты предыдущей позиции)
+            sum = sum + field(current_position(1), current_position(2));%обновление общей суммы
+            current_position = previous_position;
+        end
+        path = [robot; path];%додавление в начало массива начальной позиции robot 
+        %disp("Координаты клеток маршрута:")
+        %disp(path);
+    
+        %отображаем путь
+        for i = size(path, 1):-1:1%проходим по всем строкам массива path, (size количество строк(т.е. количество позиций в пути))
+            fill([path(i, 1)-1 path(i, 1) path(i, 1) path(i, 1)-1], ...
+                [path(i, 2)-1 path(i, 2)-1 path(i, 2) path(i, 2)], 'g');
+            pause(0.1);
+        end
+    
+        fill([target_position(1)-1 target_position(1) target_position(1) target_position(1)-1], ...
+            [target_position(2)-1 target_position(2)-1 target_position(2) target_position(2)], 'b'); %НУЖНО ПЕРЕДЕЛАТЬ отображение конечной точки
+    
+    
+        if disp_flag
+            disp("Робот достиг цели!!")
+            disp(['Количество тактов:', num2str(sum)]);
+        
+    
+            disp("Координаты клеток маршрута по шагам:")
+            for i = 1 : size(path, 1)%проходим по всем строкам массива path, (size количество строк(т.е. количество позиций в пути))
+                disp(['Шаг', num2str(i), ':(', num2str(path(i, 1)), ',', num2str(path(i, 2)), ')'])
+            end 
+        end
+    end
+    disp("Все точки посещены!");
+end
+
+%размер поля
+rows = 12;
+cols = 11;
+
+target_points = [1, 4; 1, 7; 1, 10; 11, 10; 11, 7; 11, 4; 6, 1];%целевые точки
+
+robot = [6, 1];%начальная позиция робота
+
+field = ones(cols, rows);
+field(robot(1), robot(2)) = 0;
+field(1, 1) = Inf;
+field(2, 1) = Inf;
+field(3, 1) = Inf;
+field(4, 1) = Inf;
+field(5, 1) = Inf;
+field(7, 1) = Inf;
+field(8, 1) = Inf;
+field(9, 1) = Inf;
+field(10, 1) = Inf;
+field(11, 1) = Inf;
+field(1, 2) = Inf;
+field(2, 2) = Inf;
+field(3, 2) = Inf;
+field(4, 2) = Inf;
+field(5, 2) = Inf;
+field(7, 2) = Inf;
+field(8, 2) = Inf;
+field(9, 2) = Inf;
+field(10, 2) = Inf;
+field(11, 2) = Inf;
+field(1, 3) = Inf;
+field(2, 3) = Inf;
+field(10, 3) = Inf;
+field(11, 3) = Inf;
+
+field(1, 5) = Inf;
+field(2, 5) = Inf;
+field(10, 5) = Inf;
+field(11, 5) = Inf;
+
+field(1, 6) = Inf;
+field(2, 6) = Inf;
+field(10, 6) = Inf;
+field(11, 6) = Inf;
+
+field(1, 8) = Inf;
+field(2, 8) = Inf;
+field(10, 8) = Inf;
+field(11, 8) = Inf;
+
+field(1, 9) = Inf;
+field(2, 9) = Inf;
+field(10, 9) = Inf;
+field(11, 9) = Inf;
+
+field(1, 11) = Inf;
+field(2, 11) = Inf;
+field(10, 11) = Inf;
+field(11, 11) = Inf;
+
+field(1, 12) = Inf;
+field(2, 12) = Inf;
+field(10, 12) = Inf;
+field(11, 12) = Inf;
+
+field(6, 5) = Inf;
+field(6, 6) = Inf;
+field(6, 7) = Inf;
+field(6, 8) = Inf;
+field(6, 9) = Inf;
+field(6, 10) = Inf;
+
+%disp(rot90(field));
+
+disp_flag = 0;
+oneRobot(field, robot, target_points, disp_flag);
