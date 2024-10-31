@@ -165,15 +165,16 @@ with open ('settings.txt', 'w') as outf:
 
 
 
-
+# импорт библиотек
 import RPi.GPIO as GPIO
 import time 
 from matplotlib import pyplot 
-       
+
+# функция перевода в двоичный код
 def dec2bin(value):
     return [int(bit) for bit in bin(value)[2:].zfill(8)]
 
-    
+# описание функции преобразования информации с тройки  
 def adc():
     value = 0
     for i in range(7, -1,  -1):
@@ -185,9 +186,10 @@ def adc():
             value -= 2**i
         
     return value
-
+# настройка работы пинов 
 GPIO.setmode(GPIO.BCM) 
 
+# объявление переменных
 leds = [2, 3, 4, 17, 27, 22, 10, 9] 
 GPIO.setup(leds, GPIO.OUT) 
 
@@ -200,13 +202,14 @@ GPIO.setup(troyka, GPIO.OUT, initial = GPIO.HIGH)
 GPIO.setup(comp, GPIO.IN) 
 
 
-    
+# исполнительная программа   
 try: 
     voltage = 0 
     result_exp = [] 
     time_start = time.time() 
     point = 0 
 
+    #заряд конденсатора
     print('Зарядка конденсатора') 
     while voltage < 256*0.89: 
         voltage = adc() 
@@ -218,6 +221,7 @@ try:
 
     GPIO.setup(troyka, GPIO.OUT, initial = GPIO.LOW) 
 
+    # разряд конденсатора
     print('Разрядка конденсатора') 
     while voltage > 256*0.02: 
         voltage = adc() 
@@ -226,9 +230,11 @@ try:
         time.sleep(0) 
         point += 1 
         GPIO.output(leds, dec2bin(voltage)) 
-
-    time_exp = time.time()-time_start 
         
+    # фиксация времени конца эксперемента
+    time_exp = time.time()-time_start 
+    
+    # запись данных во внешний файл     
     print('Запись данных в файл') 
     with open('data.txt', 'w') as f: 
         for i in result_exp: 
@@ -236,15 +242,17 @@ try:
     with open('settings.txt', 'w') as f: 
         f.write(str(1/time_exp/point) + '\n') 
         f.write('0.01289') 
-        
+     # вывод общей информации эксперимента  
     print('Длительность эксперимента {}, Период измерения {}, Частота дискретизации {}, Шаг квантования {}'.format(time_exp, time_exp/point, 1/time_exp/point, 0.013)) 
-    
+
+    # вывод графика данных
     print('Графики') 
     y=[i/256*3.3 for i in result_exp] 
     x=[i*time_exp/point for i in range(len(result_exp))] 
     pyplot.plot(x, y) 
     pyplot.show() 
 
+# подача 0 на все GPIO выходы и сброс настроек GPIO
 finally: 
     GPIO.output(leds, 0) 
     GPIO.output(dac, 0) 
