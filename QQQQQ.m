@@ -58,18 +58,7 @@ function paths = findPaths(field, robot, target_points, target_order, disp_flag,
             for direction_idx = 1:size(directions, 1)
                 new_current_position = current_position + directions(direction_idx, :);
                 if new_current_position(1) >= 1 && new_current_position(1) <= cols && new_current_position(2) >= 1 && new_current_position(2) <= rows
-                   %{
-                    if field(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) == 1
-
-                       visited(new_current_position(1), new_current_position(2)) = 0;
-                       Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
-                       queue{end + 1} = new_current_position;
-                    else
-                        visited(new_current_position(1), new_current_position(2)) = visited(new_current_position(1), new_current_position(2)) - 1;
-                        Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
-                        queue{end + 1} = new_current_position;
-                    %end
-                   %}
+                   
                     
                     % цикл для задержки робота в целевых точках то есть преодоление клеток с visited = 5 и тд????????    
                     while visited(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) >= 1
@@ -88,42 +77,13 @@ function paths = findPaths(field, robot, target_points, target_order, disp_flag,
                                 disp("Откуда и куда пришёл робот:");
                                 disp(Grid{new_current_position(1), new_current_position(2)});
                             end
-                        %end
+
                     end
-                   
-                    
-                    %{
-                    if visited(new_current_position(1), new_current_position(2)) == 0
-                        Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
-                        queue{end + 1} = new_current_position;
-                    end
-                    %}
-                    
-                    
-                    %end
+
                 end
             end
 
-%{
-            for direction_idx = 1:size(directions, 1)
-                new_current_position = current_position + directions(direction_idx, :);
-                if new_current_position(1) >= 1 && new_current_position(1) <= cols && new_current_position(2) >= 1 && new_current_position(2) <= rows
-                    if field(new_current_position(1), new_current_position(2)) ~= Inf && visited(new_current_position(1), new_current_position(2)) == 1
-                        visited(new_current_position(1), new_current_position(2)) = 0;
-                        Grid{new_current_position(1), new_current_position(2)} = {current_position, new_current_position};
-                        queue{end + 1} = new_current_position;
-
-                        if disp_flag
-                            disp("Матрица посещений:");
-                            disp(rot90(visited));
-                            disp("Откуда и куда пришёл робот:");
-                            disp(Grid{new_current_position(1), new_current_position(2)});
-                        end
-                    end
-                end
-            end
-%}
-            
+   
             %%%%
             %для нижней целевой точки
                         if current_position(1) > 1 && current_position(1) < cols && current_position(2) > 1 && current_position(2) < rows % проверка на границу
