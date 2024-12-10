@@ -501,3 +501,113 @@ visualizePaths(field, paths, target_points, colors, gif_filename);
 % Воспроизвести гифку
 system(['start ' gif_filename]);
 %implay(gif_filename);
+
+
+
+
+
+%%%%%%%%%
+%{
+% 1 вариант
+% Проверка на пересечение траекторий и добавление ожидания
+for i = 1:length(paths)
+    for j = i+1:length(paths)
+        for k = 1:size(paths{i}, 1)
+            for l = 1:size(paths{j}, 1)
+                % Проверка на пересечение координат Inf на одном и том же такте
+                if paths{i}(k, 3) == paths{j}(l, 3) || paths{i}(k, 3) == paths{j}(l, 3) + 1
+                    inf_coords_i = updateObstaclesAroundRobot(field, paths{i}(k, 1:2));
+                    inf_coords_j = updateObstaclesAroundRobot(field, paths{j}(l, 1:2));
+
+                    % Проверка на пересечение координат Inf
+                    if any(ismember(inf_coords_j, [paths{i}(k, 1), paths{i}(k, 2)], 'rows')) && any(ismember(inf_coords_i, inf_coords_j, 'rows')) && any(ismember(inf_coords_i, [paths{j}(l, 1), paths{j}(l, 2)], 'rows'))
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+
+                    % Проверка на посещение целевой точки
+                    if ismember([paths{i}(k, 1), paths{i}(k, 2)], target_points, 'rows') && ismember([paths{j}(l, 1), paths{j}(l, 2)], target_points, 'rows')
+                        % Проверка на пересечение времени
+                        if paths{i}(k, 3) == paths{j}(l, 3)
+                            % Добавляем ожидание для второго робота
+                            paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+%}
+
+%{
+%2 вариант
+% Проверка на пересечение траекторий и добавление ожидания
+for i = 1:length(paths)
+    for j = i+1:length(paths)
+        for k = 1:size(paths{i}, 1)
+            for l = 1:size(paths{j}, 1)
+                % Проверка на пересечение координат Inf на одном и том же такте
+                if paths{i}(k, 3) == paths{j}(l, 3)
+                    inf_coords_i = updateObstaclesAroundRobot(field, paths{i}(k, 1:2));
+                    inf_coords_j = updateObstaclesAroundRobot(field, paths{j}(l, 1:2));
+
+                    % Проверка на пересечение координат Inf
+                    if any(ismember(inf_coords_j, inf_coords_i, 'rows'))
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+                end
+
+                % Проверка на нахождение в целевой точке
+                if ismember([paths{i}(k, 1), paths{i}(k, 2)], target_points, 'rows') && ismember([paths{j}(l, 1), paths{j}(l, 2)], target_points, 'rows')
+                    % Проверка на пересечение времени
+                    if paths{i}(k, 3) == paths{j}(l, 3)
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+                end
+            end
+        end
+    end
+end
+%}
+
+
+
+%3 вариант
+% Проверка на пересечение траекторий и добавление ожидания
+for i = 1:length(paths)
+    for j = i+1:length(paths)
+        for k = 1:size(paths{i}, 1)
+            for l = 1:size(paths{j}, 1)
+                % Проверка на пересечение координат на одном и том же такте
+                if paths{i}(k, 3) == paths{j}(l, 3)
+                    % Проверка на нахождение в одной и той же клетке
+                    if isequal(paths{i}(k, 1:2), paths{j}(l, 1:2))
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+
+                    % Проверка на пересечение непреодолимых препятствий
+                    inf_coords_i = updateObstaclesAroundRobot(field, paths{i}(k, 1:2));
+                    inf_coords_j = updateObstaclesAroundRobot(field, paths{j}(l, 1:2));
+
+                    if any(ismember(inf_coords_j, inf_coords_i, 'rows'))
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+                end
+
+                % Проверка на нахождение в целевой точке
+                if ismember([paths{i}(k, 1), paths{i}(k, 2)], target_points, 'rows') && ismember([paths{j}(l, 1), paths{j}(l, 2)], target_points, 'rows')
+                    % Проверка на пересечение времени
+                    if paths{i}(k, 3) == paths{j}(l, 3)
+                        % Добавляем ожидание для второго робота
+                        paths{j} = [paths{j}(1:l-1, :); paths{j}(l, :) + [0, 0, 1]; paths{j}(l:end, :) + [0, 0, 1]];
+                    end
+                end
+            end
+        end
+    end
+end
